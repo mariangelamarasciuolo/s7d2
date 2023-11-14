@@ -1,6 +1,5 @@
 package mariangelamarasciuoloyt.gmail.com.Progettos6d5.controllers;
 
-import io.jsonwebtoken.io.IOException;
 import mariangelamarasciuoloyt.gmail.com.Progettos6d5.entities.Utente;
 import mariangelamarasciuoloyt.gmail.com.Progettos6d5.exceptions.BadRequestException;
 import mariangelamarasciuoloyt.gmail.com.Progettos6d5.payloads.UtenteDTO;
@@ -13,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,7 +36,7 @@ public class AuthController {
             throw new BadRequestException(validation.getAllErrors());
         } else {
             try {
-                return utenteService.save(body);
+                return authService.registerUtente(body);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

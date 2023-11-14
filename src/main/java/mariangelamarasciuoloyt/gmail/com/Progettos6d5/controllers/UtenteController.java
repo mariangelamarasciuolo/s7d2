@@ -1,18 +1,14 @@
 package mariangelamarasciuoloyt.gmail.com.Progettos6d5.controllers;
 
 import mariangelamarasciuoloyt.gmail.com.Progettos6d5.entities.Utente;
-import mariangelamarasciuoloyt.gmail.com.Progettos6d5.exceptions.BadRequestException;
-import mariangelamarasciuoloyt.gmail.com.Progettos6d5.payloads.UtenteDTO;
 import mariangelamarasciuoloyt.gmail.com.Progettos6d5.services.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/utenti")
@@ -28,14 +24,27 @@ public class UtenteController {
         return utenteService.getUtente(page, size, orderBy);
     }
 
-    @PostMapping("")
-    @ResponseStatus(HttpStatus.CREATED) // <-- 201
-    public Utente saveUtente(@RequestBody @Validated UtenteDTO body, BindingResult validation) {
-        if (validation.hasErrors()) {
-            throw new BadRequestException(validation.getAllErrors());
-        }
-        return utenteService.save(body);
+
+    @GetMapping("/me")
+    public UserDetails getProfile(@AuthenticationPrincipal UserDetails currentUser) {
+        return currentUser;
     }
+
+    ;
+
+    @PutMapping("/me")
+    public UserDetails getProfile(@AuthenticationPrincipal Utente currentUser, @RequestBody Utente body) {
+        return utenteService.findByIdAndUpdate(currentUser.getId(), body);
+    }
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT) // <-- 204 NO CONTENT
+    public void getProfile(@AuthenticationPrincipal Utente currentUser) {
+        utenteService.findByIdAndDelete(currentUser.getId());
+    }
+
+    ;
+
 
     @GetMapping("/{id}")
     public Utente findById(@PathVariable int id) {
@@ -43,19 +52,16 @@ public class UtenteController {
     }
 
     @PutMapping("/{id}")
-    public Utente findAndUpdateById(@PathVariable int id, @RequestBody Utente body) {
-        return utenteService.findAndUpdateById(id, body);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Utente findByIdAndUpdate(@PathVariable int id, @RequestBody Utente body) {
+        return utenteService.findByIdAndUpdate(id, body);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT) // <-- 204 NO CONTENT
     public void findAndDeleteById(@PathVariable int id) {
-        utenteService.findAndDeleteById(id);
-    }
-
-    @PostMapping("/{id}/upload")
-    public Utente uploadAvatar(@RequestParam("avatar") MultipartFile body, @PathVariable int id) throws IOException {
-        return utenteService.uploadPicture(body, id);
+        utenteService.findByIdAndDelete(id);
     }
 }
 
